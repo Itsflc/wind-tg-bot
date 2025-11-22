@@ -1,0 +1,68 @@
+//НЕ МОЖЕТ ОБРАБОТАТЬ ЛОКАЦИЮ НЕ ВЫБРАННУЮ ВРУЧНУЮ
+
+
+import telebot
+
+bot = telebot.TeleBot("ТОКЕН ОТ ТЕСТОВОГО БОТА testweatherwindbot")
+
+help_message = """
+/wind - пришлите координаты и узнайте информацию о ветре
+/favorite быстрый доступ к избранным локациям
+/settings настройки
+"""
+
+start_message = """
+/wind - пришлите координаты и узнайте информацию о ветре
+/favorite быстрый доступ к избранным локациям
+/settings настройки
+/help список команд
+"""
+
+
+@bot.message_handler(commands=['start'])
+def otvet_start(message):
+    bot.send_message(message.chat.id, f"{message.from_user.last_name}")
+
+@bot.message_handler(commands=['wind'])
+def otvet_wind(message):
+    bot.send_message(message.chat.id, "Пришли свои координаты пж")
+
+@bot.message_handler(commands=['favorite'])
+def otvet_favorite(message):
+    bot.send_message(message.chat.id, "IFAVORIIIITE")
+
+@bot.message_handler(commands=['settings'])
+def otvet_settings(message):
+    bot.send_message(message.chat.id, "IM TOO 000000000000LAZY")
+
+@bot.message_handler(commands=['help'])
+def otvet_help(message):
+    bot.send_message(message.chat.id, help_message)
+
+@bot.message_handler(content_types=['location'])
+def otvet_location(message):
+    lat = message.location.latitude
+    lon = message.location.longitude
+    text = f"""
+    Широта:  {lat}
+    Долгота: {lon}
+    """
+
+    bot.send_message(message.chat.id, text)
+
+@bot.message_handler(content_types=['photo', 'video', 'audio', 'contact', 'document', 'voice', 'animation'])
+def otvet_notlocation(message):
+    bot.reply_to(message, "Бот может обработать только локацию")
+
+
+@bot.message_handler(content_types=['text'])
+def otvet_notlocation(message):
+    bot.reply_to(message, "ТЕКСТ") 
+//добавлялась чтобы узнать не является ли предложенная телеграмом локация текстом. не является.
+
+
+
+@bot.message_handler()
+def otvet_notcommand(message):
+    bot.reply_to(message, "Команда не найдена.\n /help - список доступных команд")
+
