@@ -140,11 +140,9 @@ def otvet_notcommand(message):
 
 
 
-
-bot.polling(none_stop=True)
-
-
 @bot.message_handler()
 def otvet_notcommand(message):
     bot.reply_to(message, "Команда не найдена.\n /help - список доступных команд")
 
+
+bot.polling(none_stop=True)
