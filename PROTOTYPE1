@@ -1,15 +1,13 @@
-//НЕ МОЖЕТ ОБРАБОТАТЬ ЛОКАЦИЮ НЕ ВЫБРАННУЮ ВРУЧНУЮ
-
-
+#неотполирован, без кнопок и без базы данных
 import telebot
+import requests
 
-bot = telebot.TeleBot("ТОКЕН ОТ ТЕСТОВОГО БОТА testweatherwindbot")
+bot = telebot.TeleBot("....................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
 /favorite быстрый доступ к избранным локациям
-/settings настройки
-"""
+/settings настройки"""
 
 start_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
@@ -25,41 +23,125 @@ def otvet_start(message):
 
 @bot.message_handler(commands=['wind'])
 def otvet_wind(message):
-    bot.send_message(message.chat.id, "Пришли свои координаты пж")
+    bot.send_message(message.chat.id, "Пришли свои координаты")
 
 @bot.message_handler(commands=['favorite'])
 def otvet_favorite(message):
-    bot.send_message(message.chat.id, "IFAVORIIIITE")
+    bot.send_message(message.chat.id, "FAVORITE")
 
 @bot.message_handler(commands=['settings'])
 def otvet_settings(message):
-    bot.send_message(message.chat.id, "IM TOO 000000000000LAZY")
+    bot.send_message(message.chat.id, "LAZE")
 
 @bot.message_handler(commands=['help'])
 def otvet_help(message):
     bot.send_message(message.chat.id, help_message)
 
+
+
+
 @bot.message_handler(content_types=['location'])
 def otvet_location(message):
-    lat = message.location.latitude
-    lon = message.location.longitude
-    text = f"""
-    Широта:  {lat}
-    Долгота: {lon}
-    """
+    lat = float(message.location.latitude)
+    lon = float(message.location.longitude)
 
-    bot.send_message(message.chat.id, text)
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,snowfall,rain",
+        "timezone": "auto",
+    }
+    response = requests.get(url, params=params, timeout=15)
+    weather_data = response.json()["current"]
+
+    temp = weather_data.get('temperature_2m', 'хз')
+    humidity = weather_data.get('relative_humidity_2m', 'хз')
+    wind_speed = weather_data.get('wind_speed_10m', 'хз')
+    wind_dir = weather_data.get('wind_direction_10m', 'хз')
+    wind_gust = weather_data.get('wind_gusts_10m', 'хз')
+    precipitation = weather_data.get('precipitation', 'хз')
+    snowfall = weather_data.get('snowfall', 'хз')
+    rain = weather_data.get('rain', 'хз')
+
+    wind_data = wind_data = f"""
+    Погода:
+Температура: {temp}°C
+Влажность: {humidity}%
+
+    Ветер:
+Скорость: {wind_speed} м/с
+Направление: {wind_dir}°
+Порывы: {wind_gust} м/с
+
+   Осадки:
+Дождь: {rain} мм
+Снег: {snowfall} см
+Всего: {precipitation} мм"""
+
+    bot.send_message(message.chat.id, wind_data)
+
+@bot.message_handler(content_types=['venue'])
+def handle_venue(message):
+    lat = float(message.venue.location.latitude)
+    lon = float(message.venue.location.longitude)
+
+    url = "https://api.open-meteo.com/v1/forecast"
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "current": "relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation,snowfall,rain",
+        "timezone": "auto",
+    }
+    response = requests.get(url, params=params, timeout=15)
+    weather_data = response.json()["current"]
+
+    temp = weather_data.get('temperature_2m', 'хз')
+    humidity = weather_data.get('relative_humidity_2m', 'хз')
+    wind_speed = weather_data.get('wind_speed_10m', 'хз')
+    wind_dir = weather_data.get('wind_direction_10m', 'хз')
+    wind_gust = weather_data.get('wind_gusts_10m', 'хз')
+    precipitation = weather_data.get('precipitation', 'хз')
+    snowfall = weather_data.get('snowfall', 'хз')
+    rain = weather_data.get('rain', 'хз')
+
+    wind_data = wind_data = f"""
+    Погода:
+Температура: {temp}°C
+Влажность: {humidity}%
+
+    Ветер:
+Скорость: {wind_speed} м/с
+Направление: {wind_dir}°
+Порывы: {wind_gust} м/с
+
+   Осадки:
+Дождь: {rain} мм
+Снег: {snowfall} см
+Всего: {precipitation} мм
+"""
+    
+    bot.send_message(message.chat.id, wind_data)
+
+
+
+
 
 @bot.message_handler(content_types=['photo', 'video', 'audio', 'contact', 'document', 'voice', 'animation'])
 def otvet_notlocation(message):
     bot.reply_to(message, "Бот может обработать только локацию")
 
 
-@bot.message_handler(content_types=['text'])
-def otvet_notlocation(message):
-    bot.reply_to(message, "ТЕКСТ") 
-//добавлялась чтобы узнать не является ли предложенная телеграмом локация текстом. не является.
 
+@bot.message_handler()
+def otvet_notcommand(message):
+    bot.reply_to(message, "Команда не найдена.\n /help - список доступных команд")
+
+
+
+
+
+bot.polling(none_stop=True)
 
 
 @bot.message_handler()
