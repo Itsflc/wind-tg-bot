@@ -6,7 +6,7 @@
 import telebot
 import requests
 
-bot = telebot.TeleBot("8204099343:AAEca9iQpveDvUTzhKKOasdjwgJ-3geBINo")
+bot = telebot.TeleBot("........................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
