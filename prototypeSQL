@@ -1,11 +1,9 @@
-#сделал что при команде старт в базу данных добавляется id пользователя, если много раз /start то ничего не ломается id в таблице остается одно, удобно смотреть на нее через программу DB Browser (SQLite)
-
 import telebot
 import requests
 import sqlite3
 
 
-bot = telebot.TeleBot("...................")
+bot = telebot.TeleBot("...........................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
@@ -25,7 +23,18 @@ def otvet_start(message):
     baza = sqlite3.connect("bazadannih.sql")
     cursor = baza.cursor()
     user_id = message.from_user.id
-    cursor.execute("CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT, name1 varchar(30), name2 varchar(30), name3 varchar(30), name4 varchar(30), name5 varchar(30))")
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY,
+        name1 TEXT, lat1 REAL, lon1 REAL,
+        name2 TEXT, lat2 REAL, lon2 REAL,
+        name3 TEXT, lat3 REAL, lon3 REAL,
+        name4 TEXT, lat4 REAL, lon4 REAL,
+        name5 TEXT, lat5 REAL, lon5 REAL
+    )
+""")
+
+
     cursor.execute("INSERT OR IGNORE INTO users(id) VALUES(?)", (user_id,))
     baza.commit()
     cursor.close()
