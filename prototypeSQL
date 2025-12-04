@@ -54,7 +54,7 @@ def handle_text_coordinates(message):
         obrab_location(lat, lon, message_id)
 
 def is_coord(text):
-    pattern = r'[-+]?d+.?d*[s,;]+[-+]?d+.?d*'
+    pattern = r'^[\s]*[-+]?\d+\.?\d*[\s,;]+[-+]?\d+\.?\d*[\s]*$'
     return bool(re.match(pattern, text.strip()))
 
 def parse_coord(text):
