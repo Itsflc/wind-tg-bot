@@ -1,7 +1,7 @@
 import telebot
 import requests
 import sqlite3
-import re #эт крч парсить координаты из текста
+import re
 
 bot = telebot.TeleBot(".............................")
 
@@ -54,7 +54,7 @@ def handle_text_coordinates(message):
         obrab_location(lat, lon, message_id)
 
 def is_coord(text):
-    pattern = r'^[\s]*[-+]?\d+\.?\d*[\s,;]+[-+]?\d+\.?\d*[\s]*$'
+    pattern = r'[-+]?d+.?d*[s,;]+[-+]?d+.?d*'
     return bool(re.match(pattern, text.strip()))
 
 def parse_coord(text):
