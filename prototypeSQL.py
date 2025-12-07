@@ -100,7 +100,7 @@ def handle_speed_change(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data == "direction_change")
-def handle_speed_change(call):
+def handle_direction_change(call):
     user_id = call.from_user.id
     baza = sqlite3.connect("bazadannih.sql")
     cursor = baza.cursor()
