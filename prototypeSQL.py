@@ -3,19 +3,14 @@ import requests
 import sqlite3
 import re
 
-bot = telebot.TeleBot(".............................")
+bot = telebot.TeleBot("....................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
 /favorite быстрый доступ к избранным локациям
 /settings настройки"""
 
-start_message = """
-/wind - пришлите координаты и узнайте информацию о ветре
-/favorite быстрый доступ к избранным локациям
-/settings настройки
-/help список команд
-"""
+start_message = help_message + "\n/help список команд"
 
 @bot.message_handler(commands=['start'])
 def otvet_start(message):
@@ -29,10 +24,13 @@ def otvet_start(message):
         name2 TEXT, lat2 REAL, lon2 REAL,
         name3 TEXT, lat3 REAL, lon3 REAL,
         name4 TEXT, lat4 REAL, lon4 REAL,
-        name5 TEXT, lat5 REAL, lon5 REAL
-    ) """)
+        name5 TEXT, lat5 REAL, lon5 REAL, speed_setting INTEGER, dir_setting INTEGER)
+    """)
 
-    cursor.execute("INSERT OR IGNORE INTO users(id) VALUES(?)", (user_id,))
+    cursor.execute("""
+    INSERT OR IGNORE INTO users (id, speed_setting, dir_setting) 
+    VALUES (?, ?, ?)""", (user_id, 0 ,0))
+
     baza.commit()
     cursor.close()
     baza.close()
