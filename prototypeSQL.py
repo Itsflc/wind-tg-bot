@@ -3,7 +3,7 @@ import requests
 import sqlite3
 import re
 
-bot = telebot.TeleBot("...................")
+bot = telebot.TeleBot(".............................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
@@ -173,21 +173,42 @@ def obrab_location(lat: float, lon: float, message_id: int, user_id: int):
     weather_data = response.json()["current"]
 
   
-    humidity = weather_data.get('relative_humidity_2m', 'Нет данных')
-    wind_speed = weather_data.get('wind_speed_10m', 'Нет данных')
-    wind_dir = weather_data.get('wind_direction_10m', 'Нет данных')
-    wind_gust = weather_data.get('wind_gusts_10m', 'Нет данных')
+    openmeteo_humidity = weather_data.get('relative_humidity_2m', 'Нет данных')
+    openmeteo_wind_speed = weather_data.get('wind_speed_10m', 'Нет данных')
+    openmeteo_wind_dir = weather_data.get('wind_direction_10m', 'Нет данных')
+    openmeteo_wind_gust = weather_data.get('wind_gusts_10m', 'Нет данных')
+
+    baza = sqlite3.connect("bazadannih.sql")
+    cursor = baza.cursor()
+
+    cursor.execute("SELECT speed_setting FROM users WHERE id = ?", (user_id,))
+    speed_setting = cursor.fetchone()[0]
+    speed = "м/с" if speed_setting == 0 else "км/ч"
+    if speed_setting != 0:
+        openmeteo_wind_speed *= 3.6
+        openmeteo_wind_speed = openmeteo_wind_speed - openmeteo_wind_speed % 0.01
+        openmeteo_wind_gust *= 3.6
+        openmeteo_wind_gust = openmeteo_wind_gust - openmeteo_wind_gust % 0.01
+
+
+    cursor.execute("SELECT direction_setting FROM users WHERE id = ?", (user_id,))
+    direction_setting = cursor.fetchone()[0]
+
+    DIRECTIONS = ["Север", "Северо-восток", "Восток", "Юго-восток", "Юг", "Юго-запад", "Запад","Северо-запад"]
+    wind_direction = DIRECTIONS[int((openmeteo_wind_dir + 22.5) / 45) % 8]
+
+    direction_data = f"{openmeteo_wind_dir}°" if direction_setting == 0 else wind_direction
 
     wind_data = f"""
     Широта: {lat}
 Долгота: {lon}
 
 Ветер:
-    Скорость: {wind_speed} м/с
-    Направление: {wind_dir}°
-    Порывы: {wind_gust} м/с
+    Скорость: {openmeteo_wind_speed} {speed}
+    Направление: {direction_data}
+    Порывы: {openmeteo_wind_gust} {speed}
 
-Влажность: {humidity}%
+Влажность: {openmeteo_humidity}%
 """
     bot.send_message(message_id, wind_data)
 
