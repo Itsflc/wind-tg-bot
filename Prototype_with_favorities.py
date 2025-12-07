@@ -6,7 +6,7 @@ import requests
 import sqlite3
 import re
 
-bot = telebot.TeleBot("8383669473:AAFap3PPNxnyzN3KMaZazJPZAzPSjpo27qc")
+bot = telebot.TeleBot("........")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
