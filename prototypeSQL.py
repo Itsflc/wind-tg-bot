@@ -3,7 +3,7 @@ import requests
 import sqlite3
 import re
 
-bot = telebot.TeleBot("....................")
+bot = telebot.TeleBot("...................")
 
 help_message = """
 /wind - пришлите координаты и узнайте информацию о ветре
@@ -24,17 +24,16 @@ def otvet_start(message):
         name2 TEXT, lat2 REAL, lon2 REAL,
         name3 TEXT, lat3 REAL, lon3 REAL,
         name4 TEXT, lat4 REAL, lon4 REAL,
-        name5 TEXT, lat5 REAL, lon5 REAL, speed_setting INTEGER, dir_setting INTEGER)
+        name5 TEXT, lat5 REAL, lon5 REAL, speed_setting INTEGER, direction_setting INTEGER)
     """)
 
     cursor.execute("""
-    INSERT OR IGNORE INTO users (id, speed_setting, dir_setting) 
+    INSERT OR IGNORE INTO users (id, speed_setting, direction_setting) 
     VALUES (?, ?, ?)""", (user_id, 0 ,0))
 
     baza.commit()
     cursor.close()
     baza.close()
-    #bot.send_message(message.chat.id, f"{message.from_user.last_name}")
     bot.send_message(message.chat.id, start_message)
 
 @bot.message_handler(commands=['wind'])
@@ -48,8 +47,9 @@ def handle_text_coordinates(message):
     if lat > 90 or lat < -90 or lon > 180 or lon < -180:
         bot.send_message(message.chat.id, "Некорректные координаты")
     else:
+        user_id = message.from_user.id
         message_id = message.chat.id
-        obrab_location(lat, lon, message_id)
+        obrab_location(lat, lon, message_id, user_id)
 
 def is_coord(text):
     pattern = r'^[\s]*[-+]?\d+\.?\d*[\s,;]+[-+]?\d+\.?\d*[\s]*$'
@@ -64,9 +64,66 @@ def parse_coord(text):
 def otvet_favorite(message):
     bot.send_message(message.chat.id, "В разработке")
 
+
+
+
 @bot.message_handler(commands=['settings'])
 def otvet_settings(message):
-    bot.send_message(message.chat.id, "Guess what? В разработке")
+    user_id = message.from_user.id
+    text, setting_markup = find_settings(user_id)
+    bot.send_message(message.chat.id, text, reply_markup=setting_markup)
+
+@bot.callback_query_handler(func=lambda call: call.data == "speed_change")
+def handle_speed_change(call):
+    user_id = call.from_user.id
+    baza = sqlite3.connect("bazadannih.sql")
+    cursor = baza.cursor()
+
+    cursor.execute("SELECT speed_setting FROM users WHERE id = ?", (user_id,))
+    speed = cursor.fetchone()[0]
+    new_speed = 1 - speed
+
+    cursor.execute("UPDATE users SET speed_setting = ? WHERE id = ?", (new_speed, user_id))
+    baza.commit()
+
+    text, setting_markup = find_settings(user_id)
+
+    bot.edit_message_text(
+        text = text,
+        chat_id = call.message.chat.id,
+        message_id = call.message.message_id,
+        reply_markup = setting_markup)
+    
+    bot.answer_callback_query(call.id)
+    cursor.close()
+    baza.close() 
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "direction_change")
+def handle_speed_change(call):
+    user_id = call.from_user.id
+    baza = sqlite3.connect("bazadannih.sql")
+    cursor = baza.cursor()
+
+    cursor.execute("SELECT direction_setting FROM users WHERE id = ?", (user_id,))
+    direction = cursor.fetchone()[0]
+    new_direction = 1 - direction
+
+    cursor.execute("UPDATE users SET direction_setting = ? WHERE id = ?", (new_direction, user_id))
+    baza.commit()
+
+    text, setting_markup = find_settings(user_id)
+
+    bot.edit_message_text(
+        text = text,
+        chat_id = call.message.chat.id,
+        message_id = call.message.message_id,
+        reply_markup = setting_markup)
+    
+    bot.answer_callback_query(call.id)
+    cursor.close()
+    baza.close() 
+
 
 @bot.message_handler(commands=['help'])
 def otvet_help(message):
@@ -78,7 +135,8 @@ def otvet_location(message):
     lat = float(message.location.latitude)
     lon = float(message.location.longitude)
     message_id = message.chat.id
-    obrab_location(lat, lon, message_id)
+    user_id = message.from_user.id
+    obrab_location(lat, lon, message_id, user_id)
 
 
 @bot.message_handler(content_types=['venue'])
@@ -86,8 +144,9 @@ def handle_venue(message):
     lat = float(message.venue.location.latitude)
     lon = float(message.venue.location.longitude)
     message_id = message.chat.id
+    user_id = message.from_user.id
 
-    obrab_location(lat, lon, message_id)
+    obrab_location(lat, lon, message_id, user_id)
 
 
 @bot.message_handler(content_types=['photo', 'video', 'audio', 'contact', 'document', 'voice', 'animation'])
@@ -101,7 +160,7 @@ def otvet_notcommand(message):
     bot.reply_to(message, "Команда не найдена.\n/help - список доступных команд")
 
 
-def obrab_location(lat: float, lon: float, message_id: int):
+def obrab_location(lat: float, lon: float, message_id: int, user_id: int):
     url = "https://api.open-meteo.com/v1/forecast"
 
     params = {
@@ -131,6 +190,33 @@ def obrab_location(lat: float, lon: float, message_id: int):
 Влажность: {humidity}%
 """
     bot.send_message(message_id, wind_data)
+
+def find_settings(user_id):
+    baza = sqlite3.connect("bazadannih.sql")
+    cursor = baza.cursor()
+
+    cursor.execute("SELECT speed_setting FROM users WHERE id = ?", (user_id,))
+    speed_setting = cursor.fetchone()[0]
+    speed = "м/с" if speed_setting == 0 else "км/ч"
+
+    cursor.execute("SELECT direction_setting FROM users WHERE id = ?", (user_id,))
+    direction_setting = cursor.fetchone()[0]
+    direction = "в градусах" if direction_setting == 0 else "в направлениях"
+
+    text = f"Ваши текущие настройки:\nФормат отображения скорости - {speed}\nФормат отображения направления - {direction}"
+
+    speed_data = "м/с ➜ км/ч" if speed_setting == 0 else "км/ч ➜ м/с"
+    direction_data = "° ➜ направления" if direction_setting == 0 else "направления ➜ °"
+
+    setting_markup = telebot.types.InlineKeyboardMarkup()
+    speed_button = telebot.types.InlineKeyboardButton(speed_data, callback_data="speed_change")
+    direction_button = telebot.types.InlineKeyboardButton(direction_data, callback_data="direction_change")
+    setting_markup.add(speed_button, direction_button)
+
+    cursor.close()
+    baza.close()
+
+    return text, setting_markup
 
 
 
