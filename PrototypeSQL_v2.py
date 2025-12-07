@@ -112,7 +112,7 @@ def otvet_favorite(message):
         for i in range(1, 6):
             name = user_data[i * 3 - 2]
             if name:
-                button = telebot.types.InlineKeyboardButton(f"📍 {name}", callback_data=f"fav_{i}")
+                button = telebot.types.InlineKeyboardButton(f"{name}", callback_data=f"fav_{i}")
                 markup.add(button)
 
     bot.send_message(message.chat.id, favorites_text, reply_markup=markup)
