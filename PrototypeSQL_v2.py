@@ -68,11 +68,13 @@ def handle_text_coordinates(message):
 
 
 def is_coord(text):
+    text = text.replace(',', '.')
     pattern = r'^[\s]*[-+]?\d+\.?\d*[\s,;]+[-+]?\d+\.?\d*[\s]*$'
     return bool(re.match(pattern, text.strip()))
 
 
 def parse_coord(text):
+    text = text.replace(',', '.')
     numbers = re.findall(r'[-+]?\d+\.?\d*', text)
     return float(numbers[0]), float(numbers[1])
 
