@@ -1,2 +1,0 @@
-# ProjectBBC
-@weatherwindbot
