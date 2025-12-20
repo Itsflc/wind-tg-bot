@@ -2,16 +2,18 @@ import telebot
 import requests
 import sqlite3
 import re
+import json
 
-bot = telebot.TeleBot("............................")
+bot = telebot.TeleBot("...................................")
 
-help_message = """
-/wind - пришлите координаты и узнайте информацию о ветре
-/favorite быстрый доступ к избранным локациям
-/settings настройки"""
+def load_json(path: str):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
-start_message = help_message + "\n/help список команд"
+MSG = load_json("messages.json")
 
+help_message = MSG["help"]
+start_message = MSG["start"]
 
 @bot.message_handler(commands=['start'])
 def otvet_start(message):
