@@ -1,10 +1,15 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+import os
 import telebot
 import requests
 import sqlite3
 import re
 import json
 
-bot = telebot.TeleBot("...................................")
+BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+bot = telebot.TeleBot(BOT_TOKEN)
 
 def load_json(path: str):
     with open(path, "r", encoding="utf-8") as f:
