@@ -1,12 +1,14 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import os
 import telebot
 import requests
 import sqlite3
 import re
 import json
+
+from dotenv import load_dotenv
+load_dotenv()
+
+#для работы бота в проекте должен быть файл ".env" с содержанием TELEGRAM_BOT_TOKEN=000000000000
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 bot = telebot.TeleBot(BOT_TOKEN)
